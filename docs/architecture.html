@@ -1,0 +1,235 @@
+<title>BRB Virtual Try-On</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+  /* Layout: one readable column; the system diagram is the hero, then three short panels (privacy, money, resilience). */
+  :root {
+    --bg: #FBFAFD;
+    --surface: #FFFFFF;
+    --ink: #22133A;
+    --muted: #6B6378;
+    --line: #DAD4E5;
+    --brand: #5C2AA3;
+    --brand-soft: #EFE8F9;
+    --gold: #C9971A;
+    --ok: #2E7D4F;
+    --vendor: #B4561E;
+    --vendor-soft: #FBEDE3;
+    --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+    --body: "Figtree", "Segoe UI", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15101F; --surface: #1F1830; --ink: #EEE9F7; --muted: #A69DB6; --line: #3A3050;
+      --brand: #B48CF0; --brand-soft: #2C2045; --gold: #E9BE4C; --ok: #6FCB95;
+      --vendor: #F0A06C; --vendor-soft: #3A2618; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15101F; --surface: #1F1830; --ink: #EEE9F7; --muted: #A69DB6; --line: #3A3050;
+    --brand: #B48CF0; --brand-soft: #2C2045; --gold: #E9BE4C; --ok: #6FCB95;
+    --vendor: #F0A06C; --vendor-soft: #3A2618; color-scheme: dark;
+  }
+
+  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55; }
+  .wrap { max-width: 980px; margin: 0 auto; padding-block: 40px 64px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    display: grid; gap: 40px; }
+
+  header { display: grid; gap: 10px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--brand); }
+  h1 { font-family: var(--display); font-size: clamp(30px, 5vw, 46px); line-height: 1.08; margin: 0; text-wrap: balance; }
+  .lede { color: var(--muted); max-width: 62ch; margin: 0; font-size: 17px; }
+
+  h2 { font-family: var(--display); font-size: 22px; margin: 0 0 12px; text-wrap: balance; }
+
+  .diagram { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; overflow-x: auto; }
+  .diagram svg { display: block; min-width: 760px; width: 100%; height: auto; }
+  svg text { font-family: var(--body); fill: var(--ink); }
+  .node { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
+  .node-us { fill: var(--brand-soft); stroke: var(--brand); stroke-width: 2; }
+  .node-vendor { fill: var(--vendor-soft); stroke: var(--vendor); stroke-width: 1.5; stroke-dasharray: 6 4; }
+  .n-title { font-family: var(--display); font-weight: 700; font-size: 17px; }
+  .n-sub { font-size: 12.5px; fill: var(--muted); }
+  .arrow { stroke: var(--brand); stroke-width: 2; fill: none; }
+  .arrow-back { stroke: var(--ok); stroke-width: 2; fill: none; }
+  .arrow-faint { stroke: var(--muted); stroke-width: 1.5; fill: none; stroke-dasharray: 4 4; }
+  .step-dot { fill: var(--brand); }
+  .step-num { fill: var(--surface); font-family: var(--mono); font-size: 12px; font-weight: 500; }
+  .label { font-size: 12.5px; }
+  .label-ok { font-size: 12.5px; fill: var(--ok); }
+  .head-brand { fill: var(--brand); } .head-ok { fill: var(--ok); } .head-muted { fill: var(--muted); }
+  .boundary { fill: none; stroke: var(--brand); stroke-width: 1; stroke-dasharray: 2 5; opacity: .6; }
+  .boundary-label { font-family: var(--mono); font-size: 11px; fill: var(--brand); letter-spacing: .06em; }
+
+  ol.steps { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; }
+  ol.steps li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; }
+  ol.steps .n { font-family: var(--mono); font-size: 12px; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--brand); color: var(--surface); display: grid; place-items: center; margin-top: 1px; }
+  ol.steps li > span:last-child { min-width: 0; }
+
+  .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 20px; }
+  .panel { border-top: 3px solid var(--brand); padding-top: 14px; display: grid; gap: 8px; align-content: start; }
+  .panel.money { border-top-color: var(--gold); }
+  .panel.vendor { border-top-color: var(--vendor); }
+  .panel ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+  .panel p { margin: 0; color: var(--muted); }
+
+  .cost { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 14px; }
+  .cost-row { display: flex; flex-wrap: wrap; gap: 28px; }
+  .fig { display: grid; gap: 2px; }
+  .fig b { font-family: var(--display); font-size: 30px; font-variant-numeric: tabular-nums; }
+  .fig span { font-size: 13px; color: var(--muted); }
+  .note { font-size: 13.5px; color: var(--muted); margin: 0; max-width: 70ch; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  .table-wrap { overflow-x: auto; }
+  th, td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-weight: 600; min-width: 150px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">BRB · Virtual try-on · Prototype architecture</div>
+    <h1>How a shopper's photo becomes a try-on, and what keeps it safe</h1>
+    <p class="lede">The phone never talks to the AI company directly. Our own small server sits in the middle and holds the three things that matter: the API key, the spending limits, and the privacy rules.</p>
+  </header>
+
+  <section>
+    <div class="diagram" role="img" aria-label="System diagram: BRB app sends the photo to the BRB try-on server, which checks limits in a limits store and sends the photo to the FASHN AI service; the result comes back to the phone.">
+      <svg viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="head-brand"/></marker>
+          <marker id="ahok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="head-ok"/></marker>
+          <marker id="ahm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="head-muted"/></marker>
+        </defs>
+
+        <!-- What BRB controls -->
+        <rect x="14" y="28" width="574" height="356" rx="16" class="boundary"/>
+        <text x="30" y="50" class="boundary-label">WHAT BRB CONTROLS</text>
+
+        <!-- Phone -->
+        <rect x="34" y="96" width="186" height="148" rx="16" class="node"/>
+        <text x="54" y="128" class="n-title">BRB iPhone app</text>
+        <text x="54" y="152" class="n-sub">Product page + Try on</text>
+        <text x="54" y="172" class="n-sub">Shrinks photo, removes</text>
+        <text x="54" y="190" class="n-sub">location data</text>
+        <text x="54" y="222" class="n-sub">No AI key inside</text>
+
+        <!-- Our server -->
+        <rect x="350" y="96" width="210" height="148" rx="16" class="node-us"/>
+        <text x="370" y="128" class="n-title">Try-on server</text>
+        <text x="370" y="152" class="n-sub">Vercel · 3 small endpoints</text>
+        <text x="370" y="176" class="n-sub">Checks the photo</text>
+        <text x="370" y="194" class="n-sub">Enforces spend limits</text>
+        <text x="370" y="212" class="n-sub">Holds the AI key</text>
+        <text x="370" y="230" class="n-sub">Stores no photos</text>
+
+        <!-- Limits store -->
+        <rect x="370" y="300" width="170" height="64" rx="12" class="node"/>
+        <text x="388" y="328" class="n-title" style="font-size:15px">Limits counter</text>
+        <text x="388" y="348" class="n-sub">Redis · numbers only</text>
+
+        <!-- Vendor -->
+        <rect x="680" y="96" width="196" height="148" rx="16" class="node-vendor"/>
+        <text x="700" y="128" class="n-title">AI try-on service</text>
+        <text x="700" y="152" class="n-sub">FASHN today</text>
+        <text x="700" y="176" class="n-sub">Swappable: one file</text>
+        <text x="700" y="194" class="n-sub">Deletes photo after job</text>
+        <text x="700" y="212" class="n-sub">Deletes result ≤ 60 min</text>
+        <text x="700" y="230" class="n-sub">No training on images</text>
+
+        <!-- 1-2: phone → server -->
+        <path d="M220 140 L344 140" class="arrow" marker-end="url(#ah)"/>
+        <circle cx="282" cy="140" r="11" class="step-dot"/><text x="278" y="144" class="step-num">2</text>
+        <text x="236" y="124" class="label">photo + product</text>
+
+        <!-- 3: server ↔ limits -->
+        <path d="M455 244 L455 294" class="arrow-faint" marker-end="url(#ahm)"/>
+        <circle cx="455" cy="268" r="11" class="step-dot"/><text x="451" y="272" class="step-num">3</text>
+        <text x="472" y="272" class="label">within limits?</text>
+
+        <!-- 4: server → vendor -->
+        <path d="M560 140 L674 140" class="arrow" marker-end="url(#ah)"/>
+        <circle cx="617" cy="140" r="11" class="step-dot"/><text x="613" y="144" class="step-num">4</text>
+        <text x="568" y="124" class="label">photo + garment</text>
+
+        <!-- 5: result back -->
+        <path d="M674 210 L566 210" class="arrow-back" marker-end="url(#ahok)"/>
+        <path d="M344 210 L226 210" class="arrow-back" marker-end="url(#ahok)"/>
+        <circle cx="282" cy="210" r="11" class="step-dot"/><text x="278" y="214" class="step-num">5</text>
+        <text x="236" y="236" class="label-ok">try-on image</text>
+        <text x="584" y="236" class="label-ok">result</text>
+
+        <!-- 1: shopper -->
+        <circle cx="127" cy="318" r="11" class="step-dot"/><text x="123" y="322" class="step-num">1</text>
+        <text x="146" y="314" class="label">Shopper picks an item,</text>
+        <text x="146" y="332" class="label">takes or chooses a photo</text>
+        <path d="M127 306 L127 250" class="arrow-faint" marker-end="url(#ahm)"/>
+      </svg>
+    </div>
+
+    <ol class="steps">
+      <li><span class="n">1</span><span>The shopper taps <b>Try on</b> and takes or picks a photo. The phone shrinks it and strips GPS and device data.</span></li>
+      <li><span class="n">2</span><span>The app sends the photo and the product id to our server. It never sends a garment image or touches the AI key.</span></li>
+      <li><span class="n">3</span><span>The server checks the photo is a real image of a sane size, the product is one we allow, and that this shopper and the whole service are within today's limits. Bad requests stop here and cost nothing.</span></li>
+      <li><span class="n">4</span><span>The server sends the photo and our own garment photo to the AI service, and gives the app a signed, 15-minute ticket for this one job.</span></li>
+      <li><span class="n">5</span><span>The app checks in every 2 seconds. In about 10–20 seconds the try-on image comes back to the phone. Nothing is saved on our side, and the AI service deletes its copies on its own.</span></li>
+    </ol>
+  </section>
+
+  <section class="panels">
+    <div class="panel">
+      <h2>Privacy</h2>
+      <ul>
+        <li>We never store the photo: no database, no file storage, no logs.</li>
+        <li>The AI service deletes the photo when the job ends, and the result within 60 minutes.</li>
+        <li>The vendor does not train on our customers' images.</li>
+        <li>Closing the screen discards everything on the phone.</li>
+      </ul>
+      <p>Open item: the vendor keeps request records (ids and times, no images). Their deletion should go in the contract.</p>
+    </div>
+    <div class="panel money">
+      <h2>Spend control</h2>
+      <ul>
+        <li>5 try-ons per shopper per hour.</li>
+        <li>25 per day for the whole service, a hard ceiling.</li>
+        <li>Only BRB products can be tried on.</li>
+        <li>Failed jobs are free, and we never auto-retry a paid call.</li>
+        <li>If the limit counter goes down, try-on pauses rather than spending blind.</li>
+      </ul>
+    </div>
+    <div class="panel vendor">
+      <h2>No lock-in</h2>
+      <p>The AI company sits behind one plug. Switching to another vendor, or to our own model later, means writing one new file on the server. The app does not change and shoppers notice nothing.</p>
+      <p>Slow or failing AI calls get a friendly message, a retry button, and a 2-minute cut-off.</p>
+    </div>
+  </section>
+
+  <section class="cost">
+    <h2>What it costs</h2>
+    <div class="cost-row">
+      <div class="fig"><b>US$0.075</b><span>per try-on (1 credit)</span></div>
+      <div class="fig"><b>≈ US$75</b><span>per 1,000 try-ons (≈ HK$585)</span></div>
+      <div class="fig"><b>US$0</b><span>server and storage at prototype scale</span></div>
+    </div>
+    <p class="note">Shoppers often try 2–3 photos, so budget about US$0.15–0.25 per engaged shopper. The free server plan is for non-commercial use; going live needs Vercel Pro at US$20 a month. Volume pricing with the vendor should lower the per-image cost.</p>
+  </section>
+
+  <section>
+    <h2>Risks we know about</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Risk</th><th>Covered today by</th><th>Before launch</th></tr></thead>
+        <tbody>
+          <tr><td>Vendor shuts down or raises prices</td><td>Swappable plug</td><td>Keep a second vendor tested</td></tr>
+          <tr><td>Credits drained by misuse</td><td>Per-shopper and daily caps, BRB products only</td><td>Limits per logged-in user, spend alerts</td></tr>
+          <tr><td>App key copied out of the app</td><td>Caps above are the real guard</td><td>Signed user sessions</td></tr>
+          <tr><td>Results look wrong on some photos</td><td>Photo tips, clear retry messages, "AI preview" label</td><td>Quality test across body types and skin tones</td></tr>
+          <tr><td>Privacy law (HK PDPO, GDPR)</td><td>No storage, auto-deletion, location stripped</td><td>Vendor data agreement, legal review of the notice</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
