@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "BRB",
+    "slug": "brb-tryon",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.brb.tryon"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single",
+      "name": "BRB Try-On",
+      "shortName": "BRB",
+      "themeColor": "#5C2AA3",
+      "backgroundColor": "#FFFFFF"
+    },
+    "scheme": "brbtryon",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "BRB uses your photo only to show how clothes look on you. It is not stored.",
+          "cameraPermission": "BRB uses the camera so you can take a photo to try clothes on."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
