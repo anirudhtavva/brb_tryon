@@ -1,0 +1,5 @@
+# Never upload secrets as files — settings go to Vercel as environment variables.
+.env*
+!.env.example
+node_modules
+tests
