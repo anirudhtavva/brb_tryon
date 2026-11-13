@@ -1,0 +1,24 @@
+{
+  "name": "brb-tryon-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Serverless try-on API for the BRB app (Vercel).",
+  "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "vercel dev",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm test",
+    "local": "tsx scripts/local-server.ts",
+    "vercel-build": "sh scripts/vercel-build.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  }
+}
