@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Secrets — never commit real keys
+.env
+.env.local
+.env.*.local
+
+# Build / tool output
+.vercel/
+.expo/
+dist/
+web-build/
+*.log
+.DS_Store
+
+# Web build of the app (made by the deploy script)
+backend/public/
+.vercel/
